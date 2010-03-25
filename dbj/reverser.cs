@@ -1,8 +1,8 @@
 ﻿/*
 MIT (c) 2010 by DBJ.ORG
 
-$Revision: $
-$Author: $
+$Revision: 10 $
+$Author: Admin $
 
  * After first battery of tests is developed and used
  * this code will form an separate assembly in an implementation

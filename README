@@ -4,8 +4,8 @@
 File Reversing Tehniques R&D
 From trivial , over normal text file reversal, to handling XXL files on any kind
 
-$Revision: $
-$Author: $
+$Revision: 3 $
+$Author: Admin $
 
 Rationale : Have your own file protection tehnique. These days everybody 
             stores files online, withought giving it much thought.
