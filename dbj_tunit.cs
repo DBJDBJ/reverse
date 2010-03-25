@@ -33,14 +33,39 @@
         }
 
         #region Additional test attributes
-        // 
-        //You can use the following additional attributes as you write your tests:
-        //
+
+        // prepare and hold: input, reversed and reveresed back file names
+        struct Names
+        {
+            public static readonly string max_file = "max_file" ;
+            public static readonly string mid_file = "mid_file";
+            public static readonly string min_file = "min_file";
+
+            public readonly string input , reversed, reversed_back;
+
+            public Names( string seed ) {
+                input = IO.Path.GetFullPath(seed);
+                reversed =  input  + ".reversed" ;
+                reversed_back = IO.Path.ChangeExtension(input , ".reversed_back." + IO.Path.GetExtension(input));
+            }
+        }
+
         //Use ClassInitialize to run code before running the first test in the class
-        //[ClassInitialize()]
-        //public static void MyClassInitialize(TestContext testContext)
-        //{
-        //}
+        [ClassInitialize()]
+        public static void MyClassInitialize(TestContext testContext)
+        {
+            string op_root = tdd.Properties.Settings.Default.operation_folder;
+
+            testContext.Properties.Add( Names.max_file , new Names(
+                 op_root + tdd.Properties.Settings.Default.max_file 
+                ));
+            testContext.Properties.Add(Names.mid_file, new Names(
+                op_root + tdd.Properties.Settings.Default.mid_file
+                ));
+            testContext.Properties.Add(Names.min_file, new Names(
+                op_root + tdd.Properties.Settings.Default.min_file
+                ));
+        }
         //
         //Use ClassCleanup to run code after all tests in a class have run
         //[ClassCleanup()]
@@ -113,32 +138,36 @@
             Assert.AreEqual(true, DBJ.CompareTextFiles( input, output2 ));
         }
 
-        [Ignore,
+        [
         Description("Test Reversing disk based, potentialy very large, files. This test might be hiting the file system."), 
         TestMethod]
         public void disk_file_reversing()
         {
-            string input = "e:\\judith.jpg", output1 = "e:\\judith.rvr.jpg", output2 = "e:\\judith.org.jpg";
+            Names name = (Names)TestContext.Properties[ Names.max_file ];
 
-            dbj.Reverser.reverse(input, output1);
-            dbj.Reverser.reverse(output1, output2);
+            TestContext.BeginTimer(Names.max_file);
+            dbj.Reverser.reverse( name.input    , name.reversed );
+            dbj.Reverser.reverse( name.reversed , name.reversed_back );
+            TestContext.EndTimer(Names.max_file);
+            TestContext.WriteLine("How do I write timing result?");
             // at this time input1 and output2 must be the same
-            Assert.AreEqual(true, dbj.Reverser.compare_files(input, output2));
+            Assert.AreEqual(true, dbj.Reverser.compare_files(name.input , name.reversed_back ));
         }
 
         [
-        Description("Test copy+reverse+copy an jpg file.Reversing+copying streams in memory."),
+        Ignore,
+        Description("Test copy+reverse+copy an mid sized file.Reversing+copying streams in memory."),
         TestMethod
         ]
-        public void copy_jpg_over_memory()
+        public void copy_mid_size_file_over_memory()
         {
-            string f = "e:\\judith.jpg", f1 = "e:\\judith.rvr.jpg", f2 = "e:\\judith.org.jpg";
+            Names name = (Names)TestContext.Properties[Names.mid_file];
 
             using (
             IO.FileStream
-                input = new IO.FileStream(f, IO.FileMode.Open),
-                output1 = new IO.FileStream(f1, IO.FileMode.Create),
-                output2 = new IO.FileStream(f2, IO.FileMode.Create)
+                input = new IO.FileStream( name.input      , IO.FileMode.Open),
+                output1 = new IO.FileStream( name.reversed , IO.FileMode.Create),
+                output2 = new IO.FileStream( name.reversed_back , IO.FileMode.Create)
                 )
             {
 
@@ -151,7 +180,8 @@
 
 
         [
-        Description("Test copy+reverse+copy an string file.Reversing+copying streams in memory."),
+        Ignore,
+        Description("Test copy+reverse+copy a string based stream .Reversing+copying streams in memory."),
         TestMethod
         ]
         public void copy_string_over_memory()
