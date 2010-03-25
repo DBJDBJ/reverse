@@ -35,18 +35,51 @@
         #region Additional test attributes
 
         // prepare and hold: input, reversed and reveresed back file names
-        struct Names
+        // for large, medium and small file names
+        sealed class Names
         {
             public static readonly string max_file = "max_file" ;
             public static readonly string mid_file = "mid_file";
             public static readonly string min_file = "min_file";
+            public static readonly string root ;
 
-            public readonly string input , reversed, reversed_back;
+            public readonly string input , reversed, reversed_back ;
+
+            static Names () {
+                Names.root = tdd.Properties.Settings.Default.operation_folder;
+            }
 
             public Names( string seed ) {
                 input = IO.Path.GetFullPath(seed);
                 reversed =  input  + ".reversed" ;
                 reversed_back = IO.Path.ChangeExtension(input , ".reversed_back." + IO.Path.GetExtension(input));
+            }
+
+            static Names max_ = null ;
+            public static Names max
+            {
+                get {
+                    if (max_ == null) max_ = new Names(Names.root + tdd.Properties.Settings.Default.max_file);
+                    return max_ ;
+                }
+            }
+            static Names mid_ = null;
+            public static Names mid
+            {
+                get
+                {
+                    if (mid_ == null) mid_ = new Names(Names.root + tdd.Properties.Settings.Default.mid_file);
+                    return mid_ ;
+                }
+            }
+            static Names min_ = null;
+            public static Names min
+            {
+                get
+                {
+                    if (min_ == null) min_ = new Names(Names.root + tdd.Properties.Settings.Default.min_file);
+                    return min_ ;
+                }
             }
         }
 
@@ -54,17 +87,11 @@
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            string op_root = tdd.Properties.Settings.Default.operation_folder;
-
-            testContext.Properties.Add( Names.max_file , new Names(
-                 op_root + tdd.Properties.Settings.Default.max_file 
-                ));
-            testContext.Properties.Add(Names.mid_file, new Names(
-                op_root + tdd.Properties.Settings.Default.mid_file
-                ));
-            testContext.Properties.Add(Names.min_file, new Names(
-                op_root + tdd.Properties.Settings.Default.min_file
-                ));
+            /*
+             * Any user defined testContext.Properties
+             * added here will be erased upon this method exit
+             */
+            testContext.Properties.Add("library erases this", 1);
         }
         //
         //Use ClassCleanup to run code after all tests in a class have run
@@ -143,7 +170,7 @@
         TestMethod]
         public void disk_file_reversing()
         {
-            Names name = (Names)TestContext.Properties[ Names.max_file ];
+            Names name = Names.max;
 
             TestContext.BeginTimer(Names.max_file);
             dbj.Reverser.reverse( name.input    , name.reversed );
@@ -161,7 +188,7 @@
         ]
         public void copy_mid_size_file_over_memory()
         {
-            Names name = (Names)TestContext.Properties[Names.mid_file];
+            Names name = Names.mid;
 
             using (
             IO.FileStream

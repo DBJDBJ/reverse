@@ -25,7 +25,7 @@ namespace tdd.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("wp22.zip")]
+        [global::System.Configuration.DefaultSettingValueAttribute("wat22.zip")]
         public string max_file {
             get {
                 return ((string)(this["max_file"]));
