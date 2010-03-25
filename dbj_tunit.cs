@@ -3,10 +3,14 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using IO = System.IO;
     using ST = System.Text;
-    
+
     /// <summary>
-    ///This is a test class 
-    ///</summary>
+    /// Front to in-memory reversing methods
+    /// </summary>
+    /// <remarks>
+    /// Use this for smaller files.
+    /// Some methods here are developed for testing.
+    /// </remarks>
     [TestClass()]
     public class DBJReversingTest
     {
@@ -138,8 +142,8 @@
                 )
             {
 
-                dbj.StreamUtil.copy_reverse(input, output1);
-                dbj.StreamUtil.copy_reverse(output1, output2);
+                dbj.StreamUtil.copy_reverse_in_memory(input, output1);
+                dbj.StreamUtil.copy_reverse_in_memory(output1, output2);
                 // at this time input1 and output2 must be the same
                 Assert.AreEqual(true, dbj.StreamUtil.compare(input, output2));
             }
@@ -164,8 +168,8 @@
                 output1 = new IO.MemoryStream( bytes1 ),
                 output2 = new IO.MemoryStream( bytes2 );
 
-            dbj.StreamUtil.copy_reverse(input, output1);
-            dbj.StreamUtil.copy_reverse(output1, output2);
+            dbj.StreamUtil.copy_reverse_in_memory(input, output1);
+            dbj.StreamUtil.copy_reverse_in_memory(output1, output2);
 #if DEBUG
             string result0 = ST.Encoding.Default.GetString(bytes0);
             string result1 = ST.Encoding.Default.GetString(bytes1);

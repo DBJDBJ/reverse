@@ -53,9 +53,6 @@
     <None Include="ClassDiagram1.cd" />
     <None Include="dbj_org.snk" />
     <None Include="README" />
-    <None Include="readme.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -22,6 +22,8 @@ Rationale : Have your own file protection tehnique. These days everybody
 NOTES
 ==========================================================================
 
+-- Code is extensively commented. Please always read the comments.
+
 -- "Legacy friendly" principle I followed here.
    This means: Using .NET 2.0
    This means no LINQ, etc ...

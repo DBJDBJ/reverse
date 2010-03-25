@@ -4,8 +4,9 @@ MIT (c) 2010 by DBJ.ORG
 $Revision: $
 $Author: $
 
- * The actual implementation is in here (for the purpose of quick inital testing)
- * After first battery of tests is developed this code will form an separate assembly
+ * After first battery of tests is developed and used
+ * this code will form an separate assembly in an implementation
+ * to be released
  */
 namespace dbj
 {
@@ -13,7 +14,7 @@ namespace dbj
     using System.IO;
 
     /// <summary>
-    /// utilities for streams 
+    /// Utilities for streams 
     /// </summary>
     class StreamUtil {
 
@@ -55,19 +56,29 @@ namespace dbj
         }
 
         /// <summary>
+        /// Delegate for generating methods for stream  poistioning or length 
+        /// Legacy streams do not have postion or length implemented. they have to be seek-ed for that.  Implementations of this delegate encapsulate that detail.
+        /// </summary>
+        /// <remarks>
+        /// For positioning :
         /// position/seek on the stream
         /// if no argument given return current position
-        /// </summary>
+        /// For length :
+        /// return the length
+        /// </remarks>
         /// <typeparam name="T">stream</typeparam>
-        /// <param name="pos">new position</param>
-        /// <returns>new position</returns>
-        public delegate long Positioner<T> ( params long [] pos)  ;
+        /// <param name="pos">
+        /// optional argument
+        /// if given it is new stream internal pointer position
+        /// </param>
+        /// <returns>long</returns>
+        public delegate long Position_or_length<T> ( params long [] pos)  ;
         /// <summary>
         /// there are 2 kinds: for legacy and contemporary streams
         /// </summary>
         /// <param name="strm">the stream on which poistioning will be done</param>
         /// <returns>positioner method</returns>
-        static public Positioner<Stream>  positioning_method ( System.IO.Stream strm ) {
+        static public Position_or_length<Stream>  positioning_method ( System.IO.Stream strm ) {
 
             if (!strm.CanSeek) throw new ArgumentException("San not seek on this stream?", "strm");
 
@@ -82,7 +93,7 @@ namespace dbj
         /// </summary>
         /// <param name="strm">the stream</param>
         /// <returns>length method</returns>
-        static public Positioner<Stream> length_method(Stream strm) {
+        static public Position_or_length<Stream> length_method(Stream strm) {
             if (!strm.CanSeek) throw new ArgumentException("San not seek on this stream?", "strm");
             if (StreamUtil.isLegacy(strm))
             {
@@ -96,13 +107,24 @@ namespace dbj
         /// </summary>
         /// <param name="input">An stream</param>
         /// <param name="output">An stream</param>
-        public static void copy( Stream input, Stream output )
+        public static void copy_in_memory ( Stream input, Stream output )
         {
-            const int size = 4096;
-            byte[] bytes = new byte[4096];
-            int numBytes;
-            while ((numBytes = input.Read(bytes, 0, size)) > 0)
-                output.Write(bytes, 0, numBytes);
+            lock (input)
+            {
+                lock (output)
+                {
+                    if (!isValid(input)) throw new ArgumentException("stream given can not be used?", "input");
+                    if (!isValid(output)) throw new ArgumentException("stream given can not be used?", "output");
+                    const int size = 4096;
+                    byte[] bytes = new byte[4096];
+                    int numBytes;
+                    while ((numBytes = input.Read(bytes, 0, size)) > 0)
+                        output.Write(bytes, 0, numBytes);
+
+                    positioning_method(input)(0); // reset steam pointers to 0
+                    positioning_method(output)(0); // reset steam pointers to 0
+                }
+            }
         }
 
         /// <summary>
@@ -112,7 +134,7 @@ namespace dbj
         /// <param name="output_flush">optionaly DO NOT flush the output</param>
         /// <param name="input">input stream</param>
         /// <param name="output">output stream</param>
-        public static void copy_reverse(Stream input, Stream output, params bool [] output_no_flush )
+        public static void copy_reverse_in_memory (Stream input, Stream output, params bool [] output_no_flush )
         {
             lock (input)
             {
@@ -121,20 +143,15 @@ namespace dbj
                     if (!isValid(input)) throw new ArgumentException("stream given can not be used?", "input");
                     if (!isValid(output)) throw new ArgumentException("stream given can not be used?", "output");
 
-                    Positioner<Stream> pos_in = positioning_method(input);
-                    Positioner<Stream> len_in = length_method(input);
-                    Positioner<Stream> pos_out = positioning_method(output);
-                    Positioner<Stream> len_out = length_method(output);
-
-                    if (len_in() > 0xFFFF) throw new ArgumentException("Streams over length 65535, are not handled by this method", "input");
+                    if (length_method(input)() > 0xFFFF) throw new ArgumentException("Streams over length 65535, are not handled by this method", "input");
 
                     byte[] bytes = toByteArray(input);
                     Array.Reverse(bytes);
                     // by default flush the output
                     if (output_no_flush.Length < 1) output.Flush();
                     output.Write(bytes, 0, bytes.Length);
-                    pos_out(0); // so that operations on wrappers of this streams can work normaly
-                    pos_in(0); // so that operations on wrappers of this streams can work normaly
+                    positioning_method(input)(0); // reset steam pointers to 0
+                    positioning_method(output)(0); // reset steam pointers to 0
                 }
             }
         }
@@ -150,13 +167,10 @@ namespace dbj
             lock (s)
             {
                 if (!isValid(s)) throw new ArgumentException("stream given can not be used?", "s");
-                Positioner<Stream> position = positioning_method(s);
-                Positioner<Stream> lengther = length_method(s);
-
-                position(0); // reset 
-                // Now read s into a byte buffer.
-                byte[] bytes = new byte[lengther()];
-                int numBytesToRead = (int)lengther();
+                positioning_method(s)(0); // reset 
+                int stream_length = (int)length_method(s)();
+                byte[] bytes = new byte[stream_length];
+                int numBytesToRead = stream_length;
                 int numBytesRead = 0;
                 while (numBytesToRead > 0)
                 {
@@ -183,9 +197,9 @@ namespace dbj
             {
                 lock (fs2)
                 {
-                    Positioner<Stream> pos1 = positioning_method(fs1),
+                    Position_or_length<Stream> pos1 = positioning_method(fs1),
                                        pos2 = positioning_method(fs2);
-                    Positioner<Stream> len1 = length_method(fs1),
+                    Position_or_length<Stream> len1 = length_method(fs1),
                                        len2 = length_method(fs2);
 
                     int file1byte, file2byte;
@@ -469,10 +483,13 @@ namespace dbj
     }
 
     /// <summary>
-    /// version of a StreamVector which can handle files
-    /// this primarily means it will close the files either on demand or when 
-    /// it goes out of scope as defined by IDisposable behaviour
+    /// Handle FileStream's
     /// </summary>
+    /// <remarks>
+    /// This means it will close the file when 
+    /// it goes out of scope as defined by IDisposable behaviour which it implements.
+    /// Laways use using() method when dealing with System.IO top-level classes.
+    /// </remarks>
     class FileVector : StreamVector, IDisposable   
     {
         /// <summary>
@@ -510,8 +527,25 @@ namespace dbj
         #endregion
     }
 
+    /// <summary>
+    /// Front to the disk based reversals
+    /// </summary>
+    /// <remarks>
+    /// Care is taken that it works on both legacy (minimal  implementation) stream and "proper" streams.
+    /// "Minimal" streams are usualy found in mobile device environments. And as user developed "in-house" streams.
+    /// </remarks>
     class Reverser
     {
+        /// <summary>
+        /// Create output file which is reversed image of the input file.
+        /// </summary>
+        /// <remarks>
+        /// Does not use in memory reversal.
+        /// Works on XXL files.
+        /// Output file attributes will be stripped of. It will not be hidden, read only or system file.
+        /// </remarks>
+        /// <param name="input">file name or path</param>
+        /// <param name="output">file name or path</param>
         public static void reverse( string input, string output )
         {
             input = Path.GetFullPath(input);
@@ -536,10 +570,14 @@ namespace dbj
             }
         }
         /// <summary>
-        /// Use this method to reverse the content of a file.
-        /// file will be reversed "in-place"
+        /// Reverse the content of a file.
         /// </summary>
+        /// <remarks>
+        /// File will be reversed "in-place". 
+        /// No memory reversal.
+        /// </remarks>
         /// <param name="args">file path</param>
+        /// <param name="file_path">File name or path</param>
         public static void reverse (string file_path)
         {
             file_path = Path.GetFullPath(file_path);
@@ -557,22 +595,30 @@ namespace dbj
         }
 
         /// <summary>
-        /// Use this method to reverse the content of a stream.
-        /// This allows the caller to use MemoryStreams or StringStreams
-        /// Or any other kind-of-a stream. The only requirement is that stream 
-        /// can be seek-ed and write()/read() used on it.
+        /// Reverse the content of a stream.
         /// </summary>
+        /// <remarks>
+        /// This method declaration allows the caller to use MemoryStreams or StringStreams
+        /// Or any other kind-of-a stream. The only requirement is that stream can be seek-ed and write()/read()
+        /// </remarks>
         /// <param name="args">file path</param>
+        /// <param name="stream_">
+        /// Stream instance 
+        /// Legacy streams are taken care of.
+        /// </param>
         public static void reverse (Stream stream_)
         {
                 new StreamVector(stream_).reverse();
         }
 
         /// <summary>
-        /// This method accepts two strings the represent two files to 
-        /// compare. Algorithm uses stream bit-by-bit comparison so it
-        /// is suitable for large disk based files
+        /// Compare two files
         /// </summary>
+        /// <remarks>
+        /// Algorithm uses stream bit-by-bit comparison so it
+        /// is suitable for large disk based files.
+        /// NOTE: this can be a very long operation if applied on XXL files.
+        /// </remarks>
         /// <param name="file1">file path</param>
         /// <param name="file2">file path</param>
         /// <returns>true if file content is same</returns>
@@ -590,13 +636,20 @@ namespace dbj
             }
         }
 
+        /// <summary>
+        /// Instantiate if admin impersonation is required.
+        /// </summary>
+        /// <remarks>
+        /// Impersonate as admin upon creating 
+        /// Undo the impersonation when disposing
+        /// Of course caller needs to know admin user name and password.
+        /// </remarks>
         class AutomagicAdmin : IDisposable 
         {
             System.Security.Principal.WindowsImpersonationContext context = null;
 
             /// <summary>
-            /// Impersonate as admin upon creating 
-            /// Undo the impersonation whn leaving
+            /// public constructor
             /// </summary>
             /// <param name="upn_uname">UPN user name example : admin@WS01 , where 'WS01' is a domain name </param>
             /// <param name="password"> password </param>
@@ -616,6 +669,9 @@ namespace dbj
 
             }
             // undo admin magic when leaving
+            /// <summary>
+            /// impersonation context is undone upon disposal
+            /// </summary>
             public void Dispose()
             {
                 if (context != null) context.Undo();
