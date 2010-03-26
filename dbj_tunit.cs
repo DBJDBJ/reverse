@@ -4,6 +4,17 @@
     using IO = System.IO;
     using ST = System.Text;
 
+    class dbjContextHolder {
+
+        private TestContext context_ = null;
+
+        public dbjContextHolder(TestContext official_context)
+        {
+            this.context_ = official_context;
+        }
+        public TestContext context { get { return this.context_; } }
+    }
+
     /// <summary>
     /// Front to in-memory reversing methods
     /// </summary>
@@ -15,7 +26,11 @@
     public class DBJReversingTest
     {
         private TestContext testContextInstance;
-
+        #region DBJ test context solution
+        // context holder that can be used to store own properties
+        // must be initalized in class initialization method
+        static dbjContextHolder my_context = null;
+        #endregion
         /// <summary>
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
@@ -84,33 +99,28 @@
         }
 
         //Use ClassInitialize to run code before running the first test in the class
+        // NOTE! This is called *BEFORE* this class is instantiated 
         [ClassInitialize()]
-        public static void MyClassInitialize(TestContext testContext)
+        public static void DBJReversingTestInitialize(TestContext testContext)
         {
-            /*
-             * Any user defined testContext.Properties
-             * added here will be erased upon this method exit
-             */
-            testContext.Properties.Add("library erases this", 1);
+             // Any user defined testContext.Properties
+             // added to the argument will be erased 
+             // afer this method exits
+            // testContext.Properties.Add("This is lost", 1);
+
+            // use  dbjContextHolder to preserve your TestContext 
+            DBJReversingTest.my_context = new dbjContextHolder(testContext);
+            my_context.context.Properties.Add("KEY", 13);
         }
         //
         //Use ClassCleanup to run code after all tests in a class have run
-        //[ClassCleanup()]
-        //public static void MyClassCleanup()
-        //{
-        //}
+        //[ClassCleanup()] public static void MyClassCleanup() { }
         //
         //Use TestInitialize to run code before running each test
-        //[TestInitialize()]
-        //public void MyTestInitialize()
-        //{
-        //}
+        /*[TestInitialize()]public void MyTestInitialize(){ }*/
         //
         //Use TestCleanup to run code after each test has run
-        //[TestCleanup()]
-        //public void MyTestCleanup()
-        //{
-        //}
+        //[TestCleanup()] public void MyTestCleanup() { }
         //
         #endregion
 

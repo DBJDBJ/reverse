@@ -3,16 +3,16 @@
   <Profiles />
   <Settings>
     <Setting Name="max_file" Type="System.String" Scope="User">
-      <Value Profile="(Default)">wat22.zip</Value>
+      <Value Profile="(Default)">midsize.jpg</Value>
     </Setting>
     <Setting Name="mid_file" Type="System.String" Scope="User">
-      <Value Profile="(Default)">mid_file.txt</Value>
+      <Value Profile="(Default)">midsize.jpg</Value>
     </Setting>
     <Setting Name="min_file" Type="System.String" Scope="User">
-      <Value Profile="(Default)">min_file.txt</Value>
+      <Value Profile="(Default)">midsize.jpg</Value>
     </Setting>
     <Setting Name="operation_folder" Type="System.String" Scope="User">
-      <Value Profile="(Default)">I:\\</Value>
+      <Value Profile="(Default)">E:\\</Value>
     </Setting>
   </Settings>
 </SettingsFile>

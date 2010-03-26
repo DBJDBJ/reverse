@@ -25,7 +25,7 @@ namespace tdd.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("wat22.zip")]
+        [global::System.Configuration.DefaultSettingValueAttribute("midsize.jpg")]
         public string max_file {
             get {
                 return ((string)(this["max_file"]));
@@ -37,7 +37,7 @@ namespace tdd.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("mid_file.txt")]
+        [global::System.Configuration.DefaultSettingValueAttribute("midsize.jpg")]
         public string mid_file {
             get {
                 return ((string)(this["mid_file"]));
@@ -49,7 +49,7 @@ namespace tdd.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("min_file.txt")]
+        [global::System.Configuration.DefaultSettingValueAttribute("midsize.jpg")]
         public string min_file {
             get {
                 return ((string)(this["min_file"]));
@@ -61,7 +61,7 @@ namespace tdd.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("I:\\\\")]
+        [global::System.Configuration.DefaultSettingValueAttribute("E:\\\\")]
         public string operation_folder {
             get {
                 return ((string)(this["operation_folder"]));
